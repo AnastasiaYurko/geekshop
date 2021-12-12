@@ -1,15 +1,17 @@
-from django.views.generic import ListView, CreateView, UpdateView, DeleteView, DetailView
-from django.forms.models import inlineformset_factory
-from django.urls import reverse_lazy, reverse
 from django.db import transaction
-from django.http import HttpResponseRedirect, JsonResponse
+from django.forms.models import inlineformset_factory
+from django.http import HttpResponseRedirect
+from django.urls import reverse_lazy, reverse
+from django.views.generic import ListView, DeleteView, CreateView, UpdateView, DetailView
 
 from basketapp.models import Basket
-from mainapp.models import Product
 from ordersapp.forms import OrderItemForm
 from ordersapp.models import Order, OrderItem
 from django.dispatch import receiver
 from django.db.models.signals import pre_save, pre_delete
+
+from django.http import JsonResponse
+from mainapp.models import Product
 
 
 class OrderListView(ListView):
@@ -39,15 +41,16 @@ class OrderCreateView(CreateView):
                     form.initial['product'] = basket_items[num].product
                     form.initial['quantity'] = basket_items[num].quantity
                     form.initial['price'] = basket_items[num].price
-                # basket_items.delete()
             else:
                 formset = OrderFormSet()
+
         context_data['orderitems'] = formset
         return context_data
 
     def form_valid(self, form):
         context = self.get_context_data()
         orderitems = context['orderitems']
+
         with transaction.atomic():
             Basket.objects.filter(user=self.request.user).delete()
             form.instance.user = self.request.user
@@ -55,10 +58,17 @@ class OrderCreateView(CreateView):
             if orderitems.is_valid():
                 orderitems.instance = self.object
                 orderitems.save()
+
         if self.object.get_total_cost() == 0:
             self.object.delete()
-
         return super().form_valid(form)
+
+
+class OrderListView(ListView):
+    model = Order
+
+    def get_queryset(self):
+        return Order.objects.filter(user=self.request.user)
 
 
 class OrderUpdateView(UpdateView):
@@ -114,7 +124,7 @@ def order_forming_complete(request, pk):
 
 @receiver(pre_save, sender=OrderItem)
 @receiver(pre_save, sender=Basket)
-def product_quantity_update_save(sender, instance, **kwargs):
+def product_quantity_update_save(sender, update_fields, instance, **kwargs):
     if instance.pk:
         instance.product.quantity -= instance.quantity - instance.get_item(instance.pk).quantity
     else:
@@ -134,5 +144,5 @@ def get_product_price(request, pk):
         product_item = Product.objects.filter(pk=pk).first()
         if product_item:
             return JsonResponse({'price': product_item.price})
-        return JsonResponse({'price': 0})
-
+        else:
+            return JsonResponse({'price': 0})

@@ -1,12 +1,12 @@
 from django.shortcuts import render, get_object_or_404, HttpResponseRedirect
 from django.contrib.auth.decorators import user_passes_test
-from django.utils.decorators import method_decorator
-from django.urls import reverse, reverse_lazy
+from django.urls import reverse
 from adminapp.forms import ShopUserAdminEditForm, ProductEditForm
 from authapp.forms import ShopUserRegisterForm
 from authapp.models import ShopUser
 from mainapp.models import ProductCategory, Product
-from django.views.generic import ListView, CreateView, UpdateView, DetailView, DeleteView
+from django.views.generic import ListView, CreateView, UpdateView, DeleteView, DetailView
+from django.utils.decorators import method_decorator
 
 
 @user_passes_test(lambda u: u.is_superuser)
@@ -34,16 +34,13 @@ def user_create(request):
 #     return render(request, 'adminapp/users.html', context)
 
 
-class AccessMixin:
+class UserListView(ListView):
+    model = ShopUser
+    template_name = 'adminapp/users.html'
 
     @method_decorator(user_passes_test(lambda u: u.is_superuser))
     def dispatch(self, request, *args, **kwargs):
         return super().dispatch(request, *args, **kwargs)
-
-
-class UserListView(AccessMixin, ListView):
-    model = ShopUser
-    template_name = 'adminapp/users.html'
 
 
 @user_passes_test(lambda u: u.is_superuser)
@@ -67,7 +64,6 @@ def user_update(request, pk):
 @user_passes_test(lambda u: u.is_superuser)
 def user_delete(request, pk):
     current_user = get_object_or_404(ShopUser, pk=pk)
-
     if request.method == 'POST':
         if current_user.is_active:
             current_user.is_active = False
@@ -79,7 +75,7 @@ def user_delete(request, pk):
     context = {
         'object': current_user
     }
-    return render(request, 'user_delete.html', context)
+    return render(request, 'adminapp/user_delete.html', context)
 
 
 @user_passes_test(lambda u: u.is_superuser)
@@ -100,11 +96,6 @@ def categories(request):
 
 @user_passes_test(lambda u: u.is_superuser)
 def category_update(request):
-    """
-    TODO: сделать здесь контроллер для того, чтобы
-    изменять категории, по принципу того, как мы
-    делали для пользователя
-    """
     context = {
 
     }
@@ -127,7 +118,7 @@ def category_delete(request):
 #     return render(request, '', context)
 
 
-class ProductCreateView(AccessMixin, CreateView):
+class ProductCreateView(CreateView):
     model = Product
     template_name = 'adminapp/product_form.html'
     form_class = ProductEditForm
@@ -144,7 +135,7 @@ class ProductCreateView(AccessMixin, CreateView):
 #     return render(request, 'adminapp/products.html', context)
 
 
-class ProductsListView(AccessMixin, ListView):
+class ProductsListView(ListView):
     model = Product
     template_name = 'adminapp/products.html'
 
@@ -165,7 +156,7 @@ class ProductsListView(AccessMixin, ListView):
 #     return render(request, '', context)
 
 
-class ProductUpdateView(AccessMixin, UpdateView):
+class ProductUpdateView(UpdateView):
     model = Product
     template_name = 'adminapp/product_form.html'
     form_class = ProductEditForm
@@ -175,7 +166,6 @@ class ProductUpdateView(AccessMixin, UpdateView):
         return reverse('adminapp:product_list', args=[product_item.category_id])
 
 
-#
 # @user_passes_test(lambda u: u.is_superuser)
 # def product_delete(request):
 #     context = {
@@ -183,8 +173,7 @@ class ProductUpdateView(AccessMixin, UpdateView):
 #     }
 #     return render(request, '', context)
 
-
-class ProductDeleteView(AccessMixin, DeleteView):
+class ProductDeleteView(DeleteView):
     model = Product
     template_name = 'adminapp/product_delete.html'
 
@@ -192,23 +181,25 @@ class ProductDeleteView(AccessMixin, DeleteView):
         product_item = Product.objects.get(pk=self.kwargs['pk'])
         return reverse('adminapp:product_list', args=[product_item.category_id])
 
-    # def delete(self, request, *args, **kwargs):
-    #     if self.object.is_active:
-    #         self.object.is_active = False
-    #     else:
-    #         self.object.is_active = True
-    #     self.object.save()
-    #     return HttpResponseRedirect(reverse('adminapp:product_list', args=[self.object.category_id]))
+    def delete(self, request, *args, **kwargs):
+        if self.object.is_active:
+            self.object.is_active = False
+        else:
+            self.object.is_active = True
+        self.object.save()
+
+        return HttpResponseRedirect(reverse('adminapp:product_list', args=[self.object.category_id]))
 
 
 # @user_passes_test(lambda u: u.is_superuser)
-# def product_detail(request, pk):
+# def product_detail(request):
 #     context = {
 #
 #     }
 #     return render(request, '', context)
 
 
-class ProductDetailView(AccessMixin, DetailView):
+class ProductDetailView(DetailView):
     model = Product
     template_name = 'adminapp/product_detail.html'
+

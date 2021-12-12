@@ -1,9 +1,9 @@
 from django.shortcuts import render, get_object_or_404, HttpResponseRedirect
-from django.http import JsonResponse
-from django.template.loader import render_to_string
 from django.contrib.auth.decorators import login_required
 from basketapp.models import Basket
 from mainapp.models import Product
+from django.template.loader import render_to_string
+from django.http import JsonResponse
 
 
 @login_required
@@ -56,7 +56,6 @@ def edit(request, pk, quantity):
         context = {
             'baskets': basket_list
         }
-
         result = render_to_string('basketapp/includes/inc_baskets_list.html', context)
 
         return JsonResponse({'result': result})

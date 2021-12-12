@@ -1,15 +1,13 @@
-from django.contrib.auth.forms import AuthenticationForm, UserCreationForm, UserChangeForm
+from django.contrib.auth.forms import AuthenticationForm, UserCreationForm, UserChangeForm, PasswordChangeForm
 from django import forms
-from authapp.models import ShopUser, ShopUserProfile
-from django.conf import settings
+from authapp.models import ShopUser
 import hashlib
-
 import pytz
 from datetime import datetime
-
+from django.conf import settings
+from .models import ShopUserProfile
 
 class ShopUserLoginForm(AuthenticationForm):
-
     class Meta:
         model = ShopUser
         fields = ('username', 'password')
@@ -22,7 +20,6 @@ class ShopUserLoginForm(AuthenticationForm):
 
 
 class ShopUserRegisterForm(UserCreationForm):
-
     class Meta:
         model = ShopUser
         fields = ('username', 'first_name', 'last_name', 'avatar', 'email', 'age', 'password1', 'password2')
@@ -36,16 +33,12 @@ class ShopUserRegisterForm(UserCreationForm):
     def clean_age(self):
         data = self.cleaned_data['age']
         if data < 18:
-            raise forms.ValidationError('Слишком молод!')
+            raise forms.ValidationError('Ваш возраст меньше 18')
         return data
 
     def save(self, *args, **kwargs):
         user = super().save(*args, **kwargs)
         user.is_active = False
-
-        # import random, hashlib
-        # salt = hashlib.sha1(str(random.random()).encode('utf8')).hexdigest()[:6]
-        # user.activation_key = hashlib.sha1((user.email + salt).encode('utf8')).hexdigest()
 
         user.activate_key = hashlib.sha1(user.email.encode('utf8')).hexdigest()
         user.activate_key_expired = datetime.now(pytz.timezone(settings.TIME_ZONE))
@@ -55,7 +48,6 @@ class ShopUserRegisterForm(UserCreationForm):
 
 
 class ShopUserEditForm(UserChangeForm):
-
     class Meta:
         model = ShopUser
         fields = ('username', 'first_name', 'last_name', 'avatar', 'email', 'age', 'password')
@@ -71,12 +63,11 @@ class ShopUserEditForm(UserChangeForm):
     def clean_age(self):
         data = self.cleaned_data['age']
         if data < 18:
-            raise forms.ValidationError('Слишком молод!')
+            raise forms.ValidationError('Ваш возраст меньше 18')
         return data
 
 
 class ShopUserProfileEditForm(forms.ModelForm):
-
     class Meta:
         model = ShopUserProfile
         exclude = ('user',)

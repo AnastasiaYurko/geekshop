@@ -1,10 +1,10 @@
+from django.urls import reverse
 from django.conf import settings
 from django.core.mail import send_mail
-from django.urls import reverse
 from django.template.loader import render_to_string
 
 
-def send_verify_email(user):
+def send_verify_mail(user):
     verify_link = reverse('authapp:verify', args=[user.email, user.activate_key])
     full_link = f'{settings.BASE_URL}{verify_link}'
 

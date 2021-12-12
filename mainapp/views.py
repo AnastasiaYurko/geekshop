@@ -1,66 +1,38 @@
 import random
 
-from django.shortcuts import render, get_object_or_404, HttpResponse
+from django.shortcuts import render, get_object_or_404
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from django.views.generic import ListView, CreateView, UpdateView, DetailView, DeleteView
+from basketapp.models import Basket
 from mainapp.models import Product, ProductCategory
-from django.template.loader import render_to_string
 
 
-def get_hot_product():
-    return random.sample(list(Product.objects.all()), 1)[0]
-
-
-def get_same_products(hot_product):
-    products_list = Product.objects.filter(category=hot_product.category).exclude(pk=hot_product.pk)[:3]
-    return products_list
-
-
+# Create your views here.
 def index(request):
     context = {
         'title': 'Главная',
-        'products': Product.objects.all()[:4],
+        'products': Product.objects.all()[:4]
     }
     return render(request, 'mainapp/index.html', context)
 
 
 def contact(request):
     context = {
-        'title': 'Контакты',
+        'title': 'Контакты'
     }
     return render(request, 'mainapp/contact.html', context)
 
 
-class ProductsListView(ListView):
-    template_name = 'mainapp/products_list.html'
-    model = Product
-    paginate_by = 2
+def get_hot_product():
+    return random.sample(list(Product.objects.all()), 1)[0]
+    Product.objects.all()[3:5]
 
-    # def _get_current_category
 
-    def _get_links_menu(self):
-        return ProductCategory.objects.filter(is_active=True)
-
-    def get_queryset(self):
-        queryset = super().get_queryset()
-        category_pk = self.kwargs.get('pk')
-        if category_pk and category_pk > 0:
-            queryset = queryset.filter(category__pk=category_pk)
-        return queryset
-
-    def get_context_data(self, *args, **kwargs):
-        context_data = super().get_context_data(*args, **kwargs)
-        category_pk = self.kwargs.get('pk')
-        context_data['links_menu'] = self._get_links_menu()
-        context_data['title'] = 'Продукты'
-        context_data['category'] = get_object_or_404(ProductCategory, pk=category_pk)
-        return context_data
+def get_same_products(hot_product):
+    products_list = Product.objects.all().filter(category=hot_product.category).exclude(pk=hot_product.pk)[:3]
+    return products_list
 
 
 def products(request, pk=None, page=1):
-    """
-    CBV: там получение pk = 0 для категории "все", как это реализовать правильно?
-    """
     links_menu = ProductCategory.objects.all()
     if pk is not None:
         if pk == 0:
@@ -73,7 +45,6 @@ def products(request, pk=None, page=1):
             category_item = get_object_or_404(ProductCategory, pk=pk)
             products_list = Product.objects.filter(category__pk=pk)
 
-        # page = request.GET.get('p', 1)
         paginator = Paginator(products_list, 2)
         try:
             products_paginator = paginator.page(page)
@@ -84,9 +55,9 @@ def products(request, pk=None, page=1):
 
         context = {
             'links_menu': links_menu,
-            'title': 'Продукты',
+            "title": 'Продукты',
             'category': category_item,
-            'products': products_paginator,
+            'products': products_paginator
         }
         return render(request, 'mainapp/products_list.html', context=context)
 
@@ -94,9 +65,9 @@ def products(request, pk=None, page=1):
     same_products = get_same_products(hot_product)
     context = {
         'links_menu': links_menu,
-        'title': 'Продукты',
+        "title": 'Продукты',
         'hot_product': hot_product,
-        'same_products': same_products,
+        'same_products': same_products
     }
     return render(request, 'mainapp/products.html', context=context)
 

@@ -7,12 +7,11 @@ from mainapp.models import ProductCategory, Product
 
 
 def load_from_json(file_name):
-    with open(f"{settings.BASE_DIR}/json/{file_name}.json", 'r') as json_file:
+    with open(f'{settings.BASE_DIR}/json/{file_name}.json', 'r', encoding='UTF-8') as json_file:
         return json.load(json_file)
 
 
 class Command(BaseCommand):
-
     def handle(self, *args, **options):
         categories = load_from_json('categories')
 
@@ -29,4 +28,4 @@ class Command(BaseCommand):
             product['category'] = category_item
             Product.objects.create(**product)
 
-        ShopUser.objects.create_superuser('django', password='geekbrains', age=18)
+        ShopUser.objects.create_superuser('django', password='geekbrains',age=18)
