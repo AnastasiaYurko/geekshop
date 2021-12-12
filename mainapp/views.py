@@ -1,12 +1,11 @@
 import random
 
 from django.shortcuts import render, get_object_or_404
-from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from basketapp.models import Basket
+
+
 from mainapp.models import Product, ProductCategory
 
 
-# Create your views here.
 def index(request):
     context = {
         'title': 'Главная',
@@ -32,7 +31,7 @@ def get_same_products(hot_product):
     return products_list
 
 
-def products(request, pk=None, page=1):
+def products(request, pk=None):
     links_menu = ProductCategory.objects.all()
     if pk is not None:
         if pk == 0:
@@ -44,20 +43,11 @@ def products(request, pk=None, page=1):
         else:
             category_item = get_object_or_404(ProductCategory, pk=pk)
             products_list = Product.objects.filter(category__pk=pk)
-
-        paginator = Paginator(products_list, 2)
-        try:
-            products_paginator = paginator.page(page)
-        except PageNotAnInteger:
-            products_paginator = paginator.page(1)
-        except EmptyPage:
-            products_paginator = paginator.page(paginator.num_pages)
-
         context = {
             'links_menu': links_menu,
             "title": 'Продукты',
             'category': category_item,
-            'products': products_paginator
+            'products': products_list
         }
         return render(request, 'mainapp/products_list.html', context=context)
 

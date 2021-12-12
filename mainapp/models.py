@@ -6,7 +6,6 @@ class ProductCategory(models.Model):
     description = models.TextField(verbose_name='описание')
     is_active = models.BooleanField(default=True)
 
-
     def __str__(self):
         return f'{self.name}'
 
@@ -27,4 +26,4 @@ class Product(models.Model):
     is_active = models.BooleanField(default=True)
 
     def __str__(self):
-        return f'{self.name}({self.category.name})'
+        return f'{self.name} ({self.category.name})'

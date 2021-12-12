@@ -1,5 +1,5 @@
-from django.conf import settings
 from django.db import models
+from django.conf import settings
 
 from mainapp.models import Product
 
@@ -15,15 +15,18 @@ class Order(models.Model):
 
     STATUSES = (
         (STATUS_FORMING, 'Формируется'),
-        (STATUS_SEND_TO_PROCEED, 'Отправлен в обработку'),
+        (STATUS_SEND_TO_PROCEED, 'Отправлен на обработку'),
         (STATUS_PROCEEDED, 'Обрабатывается'),
         (STATUS_PAID, 'Оплачен'),
-        (STATUS_DONE, 'Выполнен'),
+        (STATUS_DONE, 'Готов'),
         (STATUS_CANCELED, 'Отменен'),
     )
+
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     status = models.CharField(choices=STATUSES, default=STATUS_FORMING, max_length=3)
+
     is_active = models.BooleanField(default=True)
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -33,17 +36,17 @@ class Order(models.Model):
 
     def get_total_cost(self):
         _items = self.orderitems.select_related()
-        return sum(list(map(lambda x: x.get_product_cost, _items)))
+        return sum(list(map(lambda x: x.product_cost, _items)))
 
 
 class OrderItem(models.Model):
-    product = models.ForeignKey(Product, on_delete=models.CASCADE, verbose_name='Продукт')
-    quantity = models.PositiveSmallIntegerField(default=0, verbose_name='Количество')
-    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='orderitems')
+    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name="orderitems")
+    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    quantity = models.PositiveSmallIntegerField(default=0, verbose_name="Количество")
 
     @property
-    def get_product_cost(self):
-        return self.product.price * self.quantity
+    def product_cost(self):
+        return self.product.price + self.quantity
 
     @staticmethod
     def get_item(pk):

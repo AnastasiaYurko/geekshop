@@ -1,7 +1,7 @@
 from django.urls import path
 from basketapp import views as basket
 
-app_name = 'basketapp'
+app_name = 'basket'
 
 urlpatterns = [
     path('', basket.basket, name='basket'),

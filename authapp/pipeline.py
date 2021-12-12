@@ -1,6 +1,8 @@
 from datetime import datetime
-import requests
 from social_core.exceptions import AuthForbidden
+
+import requests
+
 from authapp.models import ShopUserProfile
 
 
@@ -10,7 +12,7 @@ def save_user_profile(backend, user, response, *args, **kwargs):
 
     url_method = 'https://api.vk.com/method/'
     access_token = response.get('access_token')
-    fields = ','.join(['bdate', 'sex', 'about'])
+    fields = ','.join(['bdate', 'sex', 'about', 'photo_max_orig'])
 
     api_url = f'{url_method}users.get?fields={fields}&access_token={access_token}&v=5.131'
 
@@ -24,10 +26,8 @@ def save_user_profile(backend, user, response, *args, **kwargs):
     if 'sex' in data_json:
         if data_json['sex'] == 1:
             user.shopuserprofile.gender = ShopUserProfile.FEMALE
-        elif data_json['sex'] == 2:
-            user.shopuserprofile.gender = ShopUserProfile.MALE
         else:
-            user.shopuserprofile.gender = ShopUserProfile.OTHERS
+            user.shopuserprofile.gender = ShopUserProfile.MALE
 
     if 'bdate' in data_json:
         birthday = datetime.strptime(data_json['bdate'], '%d.%m.%Y')
@@ -42,5 +42,7 @@ def save_user_profile(backend, user, response, *args, **kwargs):
     if 'about' in data_json:
         user.shopuserprofile.about = data_json['about']
 
-    user.save()
+    if 'photo_max_orig' in data_json:
+        user.avatar_url = data_json['photo_max_orig']
 
+    user.save()
