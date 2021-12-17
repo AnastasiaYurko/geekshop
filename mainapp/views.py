@@ -106,6 +106,7 @@ def get_same_products(hot_product):
         pk=hot_product.pk).select_related('category')[:3]
     return products_list
 
+
 def products(request, pk=None):
     links_menu = ProductCategory.objects.all()
     if pk is not None:
