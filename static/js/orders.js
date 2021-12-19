@@ -52,6 +52,12 @@ window.onload = function () {
         $('.order_total_cost').html(order_total_cost.toString());
     };
 
+    $('.formset_row').formset({
+        addText: 'добавить продукт',
+        prefix: 'orderitems',
+        removed: delete_order_item,
+    });
+
 
     $('.order_form').on('click', 'input[type=number]', function () {
         var target = event.target
