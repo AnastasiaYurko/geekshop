@@ -83,11 +83,4 @@ window.onload = function () {
         ;
     });
 
-    function delete_order_item(row) {
-        var target_name = row[0].querySelector('input[type="number"]').name;
-        orderitem_num = parseInt(target_name.replace('orderitems-', '').replace('-quantity', ''));
-        delta_quantity = -quantity_arr[orderitem_num];
-        order_summary_update(price_arr[orderitem_num], delta_quantity);
-    }
-
 }
