@@ -1,11 +1,10 @@
-from django.urls import path, re_path
+from django.urls import path
 from mainapp import views as mainapp
-from django.views.decorators.cache import cache_page
 
 app_name = 'mainapp'
 
 urlpatterns = [
     path('', mainapp.products, name='products'),
-    re_path(r'^category/(?P<pk>\d+)/$', cache_page(3600)(mainapp.products)),
+    path('category/<int:pk>/', mainapp.products, name='category'),
     path('product/<int:pk>/', mainapp.product, name='product'),
 ]
